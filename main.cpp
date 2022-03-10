@@ -366,16 +366,6 @@ void TrajectoryGenerator(PlanParam *plan, TraParam *tra)
 }
 
 int main(int argc, char** argv) {
-#ifdef __XENO__
-  RT_TASK main_task;
-  char main_task_name[256] = {
-      '\0',
-  };
-  sprintf(main_task_name, "drfl_main_t");
-  if (rt_task_self() == 0) {
-    rt_task_shadow(&main_task, main_task_name, 55, T_CPU(3));
-  }
-#endif  // __XENO__
 
   // �ݹ� ���(// �ݹ� �Լ� �������� 50msec �̳� �۾��� ������ ��)
   Drfl.set_on_homming_completed(OnHommingCompleted);
@@ -397,8 +387,8 @@ int main(int argc, char** argv) {
   Drfl.set_on_disconnected(OnDisConnected);
 
   // ���� ����
-  assert(Drfl.open_connection("192.168.137.100"));
-  //assert(Drfl.open_connection("127.0.0.1"));  //using ros package robot simulator.
+  //assert(Drfl.open_connection("192.168.137.100"));
+  assert(Drfl.open_connection("127.0.0.1"));  //using ros package robot simulator.
 
   // ���� ���� ȹ��
   SYSTEM_VERSION tSysVerion = {
@@ -454,8 +444,9 @@ int main(int argc, char** argv) {
     g_mStat = false;
     g_Stop = false;
     std::this_thread::sleep_for(std::chrono::microseconds(1000));
-
-    cout << "\ninput key : ";
+    cout << "\nOptions\n";
+    cout << "q: quit  |  0: test basic API (currently broken)  |  1: connect_rt  |  2: set_rt  \n3: start_rt  |  4: stop_rt  |  5: servoj_rt  |  6: servol_rt  \n7: speedj_rt  |  8: speedl_rt  |  9: torque_rt\n";
+    cout << "input key : ";
     // char ch = _getch();
     char ch;
     cin >> ch;
@@ -505,93 +496,106 @@ int main(int argc, char** argv) {
       } break;
       case '1':
           {
+              cout << "Connecting..." << endl;
               //Drfl.connect_rt_control("127.0.0.1", 12348);
               Drfl.connect_rt_control();
+              cout << "Connected." << endl;
           }
           break;
       case '2':
           {
+              cout << "Setting..." << endl;
               string version = "v1.0";
               float period = 0.001;
               int losscount = 4;
               Drfl.set_rt_control_output(version, period, losscount);
+              cout << "Set." << endl;
           }
           break;
+
       case '3':
           {
+            cout << "Starting..." << endl;
         	  Drfl.start_rt_control();
+            cout << "Started." << endl;
           }
           break;
+
       case '4':
 		  {
+        cout << "Stopping..." << endl;
 			  Drfl.stop_rt_control();
+        cout << "Stopped." << endl;
 		  }
       break;
+
       case '5':
       {
-			float vel[6] = {10, 10, 10, 10, 10, 10};
-			float acc[6] = {100, 100, 100, 100, 100, 100};
-			Drfl.set_velj_rt(vel);
-			Drfl.set_accj_rt(acc);
-			Drfl.set_velx_rt(100, 10);
-			Drfl.set_accx_rt(200, 20);
+        cout << "Servoj_rt preparing" << endl;
+        float vel[6] = {10, 10, 10, 10, 10, 10};
+        float acc[6] = {100, 100, 100, 100, 100, 100};
+        Drfl.set_velj_rt(vel);
+        Drfl.set_accj_rt(acc);
+        Drfl.set_velx_rt(100, 10);
+        Drfl.set_accx_rt(200, 20);
 
-			const float st=0.001; // sampling time
-			const float ratio=1;
+        const float st=0.001; // sampling time
+        const float ratio=1;
 
-			const float None=-10000;
-			float count=0;
-			static float time=0;
+        const float None=-10000;
+        float count=0;
+        static float time=0;
 
-			float home[6] = {0, 0, 0, 0, 0, 0};
-			Drfl.movej(home, 60, 30);
+        float home[6] = {0, 0, 0, 0, 0, 0};
+        Drfl.movej(home, 60, 30);
 
-			Drfl.set_safety_mode(SAFETY_MODE_AUTONOMOUS, SAFETY_MODE_EVENT_MOVE);
-			TraParam tra;
+        Drfl.set_safety_mode(SAFETY_MODE_AUTONOMOUS, SAFETY_MODE_EVENT_MOVE);
+        TraParam tra;
 
-			// Plan1
-			PlanParam plan1;
-			plan1.time=5;
-			plan1.ps[0]=0; plan1.ps[1]=0; plan1.ps[2]=0; plan1.ps[3]=0; plan1.ps[4]=0; plan1.ps[5]=0;
-			plan1.pf[0]=40; plan1.pf[1]=40; plan1.pf[2]=40; plan1.pf[3]=40; plan1.pf[4]=40; plan1.pf[5]=40;
-			plan1.vs[0]=0; plan1.vs[1]=0; plan1.vs[2]=0; plan1.vs[3]=0; plan1.vs[4]=0; plan1.vs[5]=0;
-			plan1.vf[0]=0; plan1.vf[1]=0; plan1.vf[2]=0; plan1.vf[3]=0; plan1.vf[4]=0; plan1.vf[5]=0;
-			plan1.as[0]=0; plan1.as[1]=0; plan1.as[2]=0; plan1.as[3]=0; plan1.as[4]=0; plan1.as[5]=0;
-			plan1.af[0]=0; plan1.af[1]=0; plan1.af[2]=0; plan1.af[3]=0; plan1.af[4]=0; plan1.af[5]=0;
-			TrajectoryPlan(&plan1);
+        // Plan1
+        PlanParam plan1;
+        plan1.time=5;
+        plan1.ps[0]=0; plan1.ps[1]=0; plan1.ps[2]=0; plan1.ps[3]=0; plan1.ps[4]=0; plan1.ps[5]=0;
+        plan1.pf[0]=40; plan1.pf[1]=40; plan1.pf[2]=40; plan1.pf[3]=40; plan1.pf[4]=40; plan1.pf[5]=40;
+        plan1.vs[0]=0; plan1.vs[1]=0; plan1.vs[2]=0; plan1.vs[3]=0; plan1.vs[4]=0; plan1.vs[5]=0;
+        plan1.vf[0]=0; plan1.vf[1]=0; plan1.vf[2]=0; plan1.vf[3]=0; plan1.vf[4]=0; plan1.vf[5]=0;
+        plan1.as[0]=0; plan1.as[1]=0; plan1.as[2]=0; plan1.as[3]=0; plan1.as[4]=0; plan1.as[5]=0;
+        plan1.af[0]=0; plan1.af[1]=0; plan1.af[2]=0; plan1.af[3]=0; plan1.af[4]=0; plan1.af[5]=0;
+        TrajectoryPlan(&plan1);
+        cout << "servoj_rt executing" << endl;
+        while(1)
+        {
+          time=(++count)*st;
+          tra.time=time;
 
-			while(1)
-			{
-				time=(++count)*st;
-				tra.time=time;
+          TrajectoryGenerator(&plan1,&tra);
 
-				TrajectoryGenerator(&plan1,&tra);
+          for(int i=0; i<6; i++)
+          {
+            tra.vel[i]=None;
+            tra.acc[i]=None;
+          }
 
-				for(int i=0; i<6; i++)
-				{
-					tra.vel[i]=None;
-					tra.acc[i]=None;
-				}
+          if(time > plan1.time)
+          {
+            time=0;
+            tra.pos[0]=10; tra.pos[1]=10; tra.pos[2]=10; tra.pos[3]=10; tra.pos[4]=10; tra.pos[5]=10;
+            for(int i=0; i<6; i++)
+            {
+              tra.vel[i]=0.0;
+              tra.acc[i]=0.0;
+            }
+          }
 
-				if(time > plan1.time)
-				{
-					time=0;
-					tra.pos[0]=10; tra.pos[1]=10; tra.pos[2]=10; tra.pos[3]=10; tra.pos[4]=10; tra.pos[5]=10;
-					for(int i=0; i<6; i++)
-					{
-						tra.vel[i]=0.0;
-						tra.acc[i]=0.0;
-					}
-				}
+          Drfl.servoj_rt(tra.pos, tra.vel, tra.acc, st*ratio);
 
-				Drfl.servoj_rt(tra.pos, tra.vel, tra.acc, st*ratio);
-
-				//rt_task_wait_period(NULL);
-        std::this_thread::sleep_for(std::chrono::microseconds(1000)); //not optimal but a good start at least.
-			}
+          //rt_task_wait_period(NULL);
+          std::this_thread::sleep_for(std::chrono::microseconds(1000)); //not optimal but a good start at least.
+        }
+        cout << "Servoj_rt complete" << endl;
       }
-
       break;
+
       case '6':
       {
 			float vel[6] = {10, 10, 10, 10, 10, 10};
@@ -657,6 +661,7 @@ int main(int argc, char** argv) {
       } break;
       case '7': // speedj
 		  {
+        cout << "speedj_rt preparing" << endl;
 				float vel_limit[6] = {100, 100, 100, 100, 100, 100};
 				float acc_limit[6] = {100, 100, 100, 100, 100, 100};
 				float vel[6] = {30, 0, 0, 0, 0, 0};
@@ -689,7 +694,7 @@ int main(int argc, char** argv) {
 				plan1.as[0]=0; plan1.as[1]=0; plan1.as[2]=0; plan1.as[3]=0; plan1.as[4]=0; plan1.as[5]=0;
 				plan1.af[0]=0; plan1.af[1]=0; plan1.af[2]=0; plan1.af[3]=0; plan1.af[4]=0; plan1.af[5]=0;
 				TrajectoryPlan(&plan1);
-
+        cout << "speedj_rt executing" << endl;
 				while(1)
 				{
 					time=(++count)*st;
@@ -709,6 +714,7 @@ int main(int argc, char** argv) {
 					//rt_task_wait_period(NULL);
           std::this_thread::sleep_for(std::chrono::microseconds(1000));
 				}
+        cout << "speedj_rt complete" << endl;
 		  }
 		  break;
       case '8': // speedl
