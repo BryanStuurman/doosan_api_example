@@ -836,9 +836,5 @@ int main(int argc, char** argv) {
 
   Drfl.CloseConnection();
 
-#ifdef __XENO__
-  rt_task_join(&sub_task);
-#endif // __XENO__
-
   return 0;
 }
