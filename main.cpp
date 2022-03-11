@@ -387,8 +387,8 @@ int main(int argc, char** argv) {
   Drfl.set_on_disconnected(OnDisConnected);
 
   // ���� ����
-  //assert(Drfl.open_connection("192.168.137.100"));
-  assert(Drfl.open_connection("127.0.0.1"));  //using ros package robot simulator.
+  assert(Drfl.open_connection("192.168.137.100"));
+  //assert(Drfl.open_connection("127.0.0.1"));  //using ros package robot simulator.
 
   // ���� ���� ȹ��
   SYSTEM_VERSION tSysVerion = {
@@ -532,14 +532,17 @@ int main(int argc, char** argv) {
       case '5':
       {
         cout << "Servoj_rt preparing" << endl;
-        float vel[6] = {10, 10, 10, 10, 10, 10};
-        float acc[6] = {100, 100, 100, 100, 100, 100};
+        // float vel[6] = {10, 10, 10, 10, 10, 10};
+        // float acc[6] = {100, 100, 100, 100, 100, 100};
+        float vel[6] = {5, 5, 5, 5, 5, 5};
+        float acc[6] = {50, 50, 50, 50, 50, 50};
+
         Drfl.set_velj_rt(vel);
         Drfl.set_accj_rt(acc);
         Drfl.set_velx_rt(100, 10);
         Drfl.set_accx_rt(200, 20);
 
-        const float st=0.001; // sampling time
+        const float st=0.01; // sampling time
         const float ratio=1;
 
         const float None=-10000;
@@ -554,9 +557,9 @@ int main(int argc, char** argv) {
 
         // Plan1
         PlanParam plan1;
-        plan1.time=5;
+        plan1.time=10;
         plan1.ps[0]=0; plan1.ps[1]=0; plan1.ps[2]=0; plan1.ps[3]=0; plan1.ps[4]=0; plan1.ps[5]=0;
-        plan1.pf[0]=40; plan1.pf[1]=40; plan1.pf[2]=40; plan1.pf[3]=40; plan1.pf[4]=40; plan1.pf[5]=40;
+        plan1.pf[0]=0; plan1.pf[1]=0; plan1.pf[2]=0; plan1.pf[3]=30; plan1.pf[4]=30; plan1.pf[5]=30;
         plan1.vs[0]=0; plan1.vs[1]=0; plan1.vs[2]=0; plan1.vs[3]=0; plan1.vs[4]=0; plan1.vs[5]=0;
         plan1.vf[0]=0; plan1.vf[1]=0; plan1.vf[2]=0; plan1.vf[3]=0; plan1.vf[4]=0; plan1.vf[5]=0;
         plan1.as[0]=0; plan1.as[1]=0; plan1.as[2]=0; plan1.as[3]=0; plan1.as[4]=0; plan1.as[5]=0;
@@ -572,7 +575,7 @@ int main(int argc, char** argv) {
 
           for(int i=0; i<6; i++)
           {
-            tra.vel[i]=None;
+            //tra.vel[i]=None;
             tra.acc[i]=None;
           }
 
@@ -590,7 +593,7 @@ int main(int argc, char** argv) {
           Drfl.servoj_rt(tra.pos, tra.vel, tra.acc, st*ratio);
 
           //rt_task_wait_period(NULL);
-          std::this_thread::sleep_for(std::chrono::microseconds(1000)); //not optimal but a good start at least.
+          std::this_thread::sleep_for(std::chrono::microseconds(10000)); //not optimal but a good start at least.
         }
         cout << "Servoj_rt complete" << endl;
       }
@@ -673,11 +676,11 @@ int main(int argc, char** argv) {
 				Drfl.set_velx_rt(100, 10);
 				Drfl.set_accx_rt(200, 20);
 
-				float home[6] = {0, 0, 90, 0, 90, 0};
+				float home[6] = {0, 0, 0, 0, 0, 0};
 				Drfl.movej(home, 30, 30);
-				Drfl.set_safety_mode(SAFETY_MODE_AUTONOMOUS, SAFETY_MODE_EVENT_MOVE);
+				Drfl.set_safety_mode(SAFETY_MODE_AUTONOMOUS, SAFETY_MODE_EVENT_MOVE); //if this is removed the robot stops frequently
 
-				const float st=0.001; // sampling time
+				const float st=0.01; // sampling time
 				const float None=-10000;
 				float count=0;
 				static float time=0;
@@ -688,8 +691,8 @@ int main(int argc, char** argv) {
 				PlanParam plan1, plan2;
 				plan1.time=5;
 				plan1.ps[0]=0; plan1.ps[1]=0; plan1.ps[2]=0; plan1.ps[3]=0; plan1.ps[4]=0; plan1.ps[5]=0;
-				plan1.pf[0]=10; plan1.pf[1]=0; plan1.pf[2]=0; plan1.pf[3]=0; plan1.pf[4]=0; plan1.pf[5]=0;
-				plan1.vs[0]=0; plan1.vs[1]=0; plan1.vs[2]=0; plan1.vs[3]=0; plan1.vs[4]=0; plan1.vs[5]=0;
+				plan1.pf[0]=0; plan1.pf[1]=0; plan1.pf[2]=0; plan1.pf[3]=0; plan1.pf[4]=0; plan1.pf[5]=0;
+				plan1.vs[0]=0; plan1.vs[1]=0; plan1.vs[2]=0; plan1.vs[3]=15; plan1.vs[4]=0; plan1.vs[5]=0;
 				plan1.vf[0]=0; plan1.vf[1]=0; plan1.vf[2]=0; plan1.vf[3]=0; plan1.vf[4]=0; plan1.vf[5]=0;
 				plan1.as[0]=0; plan1.as[1]=0; plan1.as[2]=0; plan1.as[3]=0; plan1.as[4]=0; plan1.as[5]=0;
 				plan1.af[0]=0; plan1.af[1]=0; plan1.af[2]=0; plan1.af[3]=0; plan1.af[4]=0; plan1.af[5]=0;
@@ -701,8 +704,13 @@ int main(int argc, char** argv) {
 					tra.time=time;
 
 					TrajectoryGenerator(&plan1,&tra);
-
-					Drfl.speedj_rt(tra.vel, tra.acc, st);
+          
+          for(int i=0; i<6; i++)
+				  {
+					  tra.acc[i]=None;  //flag for robot to calculate
+				  }
+					
+          Drfl.speedj_rt(tra.vel, tra.acc, 0.01); //if time is zero we get similar errors
 
 					if(time > plan1.time)
 					{
@@ -712,7 +720,7 @@ int main(int argc, char** argv) {
 					}
 
 					//rt_task_wait_period(NULL);
-          std::this_thread::sleep_for(std::chrono::microseconds(1000));
+          std::this_thread::sleep_for(std::chrono::microseconds(10000));
 				}
         cout << "speedj_rt complete" << endl;
 		  }
